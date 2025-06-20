@@ -1,0 +1,40 @@
+services:
+  mongodb:
+    build: ./mongodb
+    container_name: mongodb
+    restart: unless-stopped
+
+    # Load ONLY the vars in mongodb/.env
+    env_file:
+      - ./mongodb/.env
+
+    ports:
+      - "27017:27017"
+
+    volumes:
+      # 1️⃣ persist data
+      - ./mongodb/data:/data/db
+      # 2️⃣ custom mongod.conf or *.conf snippets (optional)
+      - ./mongodb/config:/etc/mongo/conf.d:ro
+      # 3️⃣ seed scripts executed on first run
+      - ./mongodb/initdb:/docker-entrypoint-initdb.d:ro
+
+  mysql:
+    build: ./mysql
+    container_name: mysql
+    restart: unless-stopped
+
+    # Load ONLY the vars in mysql/.env
+    env_file:
+      - ./mysql/.env
+
+    ports:
+      - "3306:3306"
+
+    volumes:
+      # 1️⃣ persist data
+      - ./mysql/data:/var/lib/mysql
+      # 2️⃣ extra *.cnf (optional)
+      - ./mysql/conf.d:/etc/mysql/conf.d:ro
+      # 3️⃣ seed scripts
+      - ./mysql/initdb:/docker-entrypoint-initdb.d:ro
