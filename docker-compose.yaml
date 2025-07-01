@@ -3,38 +3,68 @@ services:
     build: ./mongodb
     container_name: mongodb
     restart: unless-stopped
-
-    # Load ONLY the vars in mongodb/.env
     env_file:
       - ./mongodb/.env
-
     ports:
       - "27017:27017"
-
     volumes:
-      # 1️⃣ persist data
       - ./mongodb/data:/data/db
-      # 2️⃣ custom mongod.conf or *.conf snippets (optional)
       - ./mongodb/config:/etc/mongo/conf.d:ro
-      # 3️⃣ seed scripts executed on first run
       - ./mongodb/initdb:/docker-entrypoint-initdb.d:ro
+    networks:
+      - mangoberry_network
 
   mysql:
     build: ./mysql
     container_name: mysql
     restart: unless-stopped
-
-    # Load ONLY the vars in mysql/.env
     env_file:
       - ./mysql/.env
-
     ports:
       - "3306:3306"
-
     volumes:
-      # 1️⃣ persist data
       - ./mysql/data:/var/lib/mysql
-      # 2️⃣ extra *.cnf (optional)
       - ./mysql/conf.d:/etc/mysql/conf.d:ro
-      # 3️⃣ seed scripts
       - ./mysql/initdb:/docker-entrypoint-initdb.d:ro
+    networks:
+      - mangoberry_network
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.0.2
+    container_name: elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      # - xpack.security.enabled=false    # Optional: disable auth for dev use
+      - ELASTIC_PASSWORD=mangoberry
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - ./elasticsearch/data:/usr/share/elasticsearch/data
+    networks:
+      - mangoberry_network
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:9.0.2
+    container_name: kibana
+    restart: unless-stopped
+    depends_on:          # waits until ES TCP:9200 is reachable
+      - elasticsearch
+    ports:
+      - "5601:5601"
+    environment:
+      # URL(s) Kibana should talk to inside the Compose network
+      ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
+      # ── optional tweaks for dev use ───────────────────────────────
+      # SERVER_NAME: kibana.local
+      # I18N_LOCALE: "ko-KR"        # requires 9.x; for 8.13 bind-mount kibana.yml
+      # XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY: "something-32-chars-long"
+    # If memory is tight on the laptop, uncomment:
+    # mem_limit: "1g"
+    networks:
+      - mangoberry_network
+
+networks:
+  mangoberry_network:
+    driver: bridge
