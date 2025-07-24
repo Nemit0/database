@@ -13,7 +13,7 @@ required_folders=(
     "mongodb/data"
     "mongodb/initdb"
     "mysql/conf.d"
-    "mysql/data"
+    "mysql/data"    
     "mysql/initdb"
 )
 

@@ -30,13 +30,14 @@ services:
       - mangoberry_network
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:9.0.2
+    build:
+      context: ./elasticsearch
     container_name: elasticsearch
     restart: unless-stopped
     environment:
       - discovery.type=single-node
-      # - xpack.security.enabled=false    # Optional: disable auth for dev use
       - ELASTIC_PASSWORD=mangoberry
+      - KIBANA_PASSWORD=mangoberry_kbn
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -60,6 +61,8 @@ services:
       # SERVER_NAME: kibana.local
       # I18N_LOCALE: "ko-KR"        # requires 9.x; for 8.13 bind-mount kibana.yml
       # XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY: "something-32-chars-long"
+      ELASTICSEARCH_USERNAME: kibana_system
+      ELASTICSEARCH_PASSWORD: mangoberry_kbn
     # If memory is tight on the laptop, uncomment:
     # mem_limit: "1g"
     networks:
