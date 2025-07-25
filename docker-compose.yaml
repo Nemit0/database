@@ -38,11 +38,13 @@ services:
       - discovery.type=single-node
       - ELASTIC_PASSWORD=mangoberry
       - KIBANA_PASSWORD=mangoberry_kbn
+      - path.repo=/usr/share/elasticsearch/snapshots
     ports:
       - "9200:9200"
       - "9300:9300"
     volumes:
       - ./elasticsearch/data:/usr/share/elasticsearch/data
+      - ./elasticsearch/snapshots:/usr/share/elasticsearch/snapshots
     networks:
       - mangoberry_network
 
