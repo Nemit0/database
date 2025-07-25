@@ -72,7 +72,11 @@ SNAP_NAME="$(docker exec elasticsearch bash -c "ls ${ES_SNAP_PATH}" | grep -E '^
 
 RESP=$(curl -fsS -u "${ES_USER}:${ES_PASS}" -H 'Content-Type: application/json' \
   -X POST "${ES_HOST}/_snapshot/${ES_REPO_NAME}/${SNAP_NAME}/_restore?wait_for_completion=true" \
-  -d '{"indices":"*","ignore_unavailable":true,"include_global_state":true}')
+  -d '{
+    "indices": "*,-.internal.*,-.security*,-.kibana*,-.fleet*",
+    "ignore_unavailable": true,
+    "include_global_state": false
+  }')
 echo "$RESP" | grep -qi '"accepted":true\|"type":"completed"\|"state":"SUCCESS"' || { echo "$RESP"; abort "Restore failed."; }
 
 echo "✅ Restore complete from: $SRC"
